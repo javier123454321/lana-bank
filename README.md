@@ -38,6 +38,14 @@ For enterprise inquiries, contact **[biz@galoy.io](mailto:biz@galoy.io)**.
 
 - Choose the install method for your system https://docs.docker.com/desktop/
 
+### Install sqlx-cli
+
+The application needs sqlx-cli, to install:
+
+```bash
+cargo install sqlx-cli
+```
+
 ### Environment Variables
 
 Set them in your `.env` file
