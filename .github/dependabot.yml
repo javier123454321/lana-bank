@@ -20,3 +20,9 @@ updates:
   groups:
     production-dependencies:
       dependency-type: "production"
+  ignore:
+    - dependency-name: "react"
+    - dependency-name: "@types/react"
+    - dependency-name: "react-dom"
+    - dependency-name: "@types/react-dom"
+    - dependency-name: "next"
