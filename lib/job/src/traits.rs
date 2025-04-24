@@ -63,11 +63,11 @@ impl RetrySettings {
     }
 
     pub(super) fn next_attempt_at(&self, attempt: u32) -> DateTime<Utc> {
-        use rand::Rng;
+        use rand::{rng, Rng};
         let base_backoff_ms = self.min_backoff.as_millis() * 2u128.pow(attempt - 1);
         let jitter_range =
             (base_backoff_ms as f64 * self.backoff_jitter_pct as f64 / 100.0) as i128;
-        let jitter = rand::thread_rng().gen_range(-jitter_range..=jitter_range);
+        let jitter = rng().random_range(-jitter_range..=jitter_range);
         let jittered_backoff = (base_backoff_ms as i128 + jitter).max(0) as u128;
         let final_backoff = std::cmp::min(jittered_backoff, self.max_backoff.as_millis());
         crate::time::now() + std::time::Duration::from_millis(final_backoff as u64)

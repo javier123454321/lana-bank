@@ -68,7 +68,7 @@ async fn prepare_test() -> anyhow::Result<(
     let jobs = Jobs::new(&pool, JobExecutorConfig::default());
 
     let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, &storage, &jobs);
-    let chart_ref = format!("ref-{:08}", rand::thread_rng().gen_range(0..10000));
+    let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     let chart = accounting
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())

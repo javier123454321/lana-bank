@@ -46,7 +46,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
 
     let storage = Storage::new(&StorageConfig::default());
     let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, &storage, &jobs);
-    let chart_ref = format!("ref-{:08}", rand::thread_rng().gen_range(0..10000));
+    let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     let chart = accounting
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref)
@@ -185,7 +185,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
 
     assert_eq!(res.entities.len(), 6);
 
-    let chart_ref = format!("other-ref-{:08}", rand::thread_rng().gen_range(0..10000));
+    let chart_ref = format!("other-ref-{:08}", rand::rng().random_range(0..10000));
     let chart = accounting
         .chart_of_accounts()
         .create_chart(&DummySubject, "Other Test chart".to_string(), chart_ref)

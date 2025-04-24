@@ -26,12 +26,12 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
     let jobs = Jobs::new(&pool, JobExecutorConfig::default());
 
     let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, &storage, &jobs);
-    let chart_ref = format!("ref-{:08}", rand::thread_rng().gen_range(0..10000));
+    let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     let chart = accounting
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
         .await?;
-    let rand_ref = format!("{:05}", rand::thread_rng().gen_range(0..100000));
+    let rand_ref = format!("{:05}", rand::rng().random_range(0..100000));
     let import = format!(
         r#"
         {rand_ref},,,Assets
@@ -48,10 +48,7 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
         .import_from_csv(&DummySubject, chart_id, import)
         .await?;
 
-    let trial_balance_name = format!(
-        "Trial Balance #{:05}",
-        rand::thread_rng().gen_range(0..100000)
-    );
+    let trial_balance_name = format!("Trial Balance #{:05}", rand::rng().random_range(0..100000));
     accounting
         .trial_balances()
         .create_trial_balance_statement(trial_balance_name.to_string())

@@ -1,11 +1,11 @@
 mod helpers;
-use rand::distributions::{Alphanumeric, DistString};
+use rand::distr::{Alphanumeric, SampleString};
 use serial_test::file_serial;
 
 use lana_app::{audit::*, authorization::init as init_authz, primitives::*};
 
 fn generate_random_email() -> String {
-    let random_string: String = Alphanumeric.sample_string(&mut rand::thread_rng(), 32);
+    let random_string: String = Alphanumeric.sample_string(&mut rand::rng(), 32);
     format!("{}@example.com", random_string.to_lowercase())
 }
 

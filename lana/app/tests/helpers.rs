@@ -17,7 +17,7 @@ pub async fn init_users(
 ) -> anyhow::Result<(Users, Subject)> {
     let superuser_email = format!(
         "superuser_{:05}@test.io",
-        rand::thread_rng().gen_range(0..100000)
+        rand::rng().random_range(0..100000)
     );
     let outbox = Outbox::init(pool).await?;
     let users = Users::init(pool, authz, &outbox, Some(superuser_email.clone())).await?;
