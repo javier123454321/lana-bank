@@ -1,8 +1,8 @@
 use chrono::{DateTime, Utc};
 
-use crate::primitives::{BalanceUpdatedType, UsdCents};
+use crate::primitives::*;
 
-use super::{BalanceUpdatedSource, CreditFacilityEvent, CreditFacilityReceivable};
+use super::{CreditFacilityEvent, CreditFacilityReceivable};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum RepaymentStatus {
@@ -178,7 +178,7 @@ mod tests {
     use chrono::{Datelike, TimeZone, Utc};
     use rust_decimal_macros::dec;
 
-    use crate::{primitives::*, terms::*, CreditFacilityAccountIds};
+    use crate::{terms::*, CreditFacilityAccountIds};
 
     use super::*;
 

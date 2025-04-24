@@ -63,7 +63,7 @@ where
     credit_facility_repo: CreditFacilityRepo<E>,
     disbursal_repo: DisbursalRepo<E>,
     payment_repo: PaymentRepo,
-    payment_allocation_repo: PaymentAllocationRepo,
+    payment_allocation_repo: PaymentAllocationRepo<E>,
     governance: Governance<Perms, E>,
     customer: Customers<Perms, E>,
     ledger: CreditLedger,
@@ -131,7 +131,7 @@ where
         let disbursal_repo = DisbursalRepo::new(pool, &publisher);
         let obligations = Obligations::new(pool, authz, cala, jobs, &publisher);
         let payment_repo = PaymentRepo::new(pool);
-        let payment_allocation_repo = PaymentAllocationRepo::new(pool);
+        let payment_allocation_repo = PaymentAllocationRepo::new(pool, &publisher);
         let ledger = CreditLedger::init(cala, journal_id).await?;
         let approve_disbursal = ApproveDisbursal::new(
             &disbursal_repo,
@@ -659,22 +659,14 @@ where
 
         let res = self
             .obligations
-            .allocate_payment_in_op(
-                &mut db,
-                credit_facility_id,
-                payment.id,
-                amount,
-                audit_info.clone(),
-            )
+            .allocate_payment(credit_facility_id, payment.id, amount, audit_info.clone())
             .await?;
 
-        payment
-            .record_allocated(
-                res.disbursed_amount(),
-                res.interest_amount(),
-                audit_info.clone(),
-            )
-            .did_execute();
+        let _ = payment.record_allocated(
+            res.disbursed_amount(),
+            res.interest_amount(),
+            audit_info.clone(),
+        );
         self.payment_repo
             .update_in_op(&mut db, &mut payment)
             .await?;
@@ -684,18 +676,11 @@ where
             .create_all_in_op(&mut db, res.allocations)
             .await?;
 
-        let now = crate::time::now();
         for allocation in &allocations {
-            credit_facility
-                .update_balance_from_payment(
-                    allocation.id,
-                    allocation.ledger_tx_id,
-                    allocation.obligation_type,
-                    allocation.amount,
-                    now,
-                    audit_info.clone(),
-                )
-                .did_execute();
+            let _ = credit_facility.update_balance(
+                allocation.facility_balance_update_data(),
+                audit_info.clone(),
+            );
         }
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)

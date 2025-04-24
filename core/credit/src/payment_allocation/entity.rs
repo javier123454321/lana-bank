@@ -21,6 +21,7 @@ pub enum PaymentAllocationEvent {
         amount: UsdCents,
         receivable_account_id: CalaAccountId,
         account_to_be_debited_id: CalaAccountId,
+        recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
 }
@@ -31,10 +32,12 @@ pub struct PaymentAllocation {
     pub id: PaymentAllocationId,
     pub obligation_id: ObligationId,
     pub obligation_type: ObligationType,
+    pub credit_facility_id: CreditFacilityId,
     pub ledger_tx_id: LedgerTxId,
     pub amount: UsdCents,
     pub account_to_be_debited_id: CalaAccountId,
     pub receivable_account_id: CalaAccountId,
+    pub recorded_at: DateTime<Utc>,
 
     pub(super) events: EntityEvents<PaymentAllocationEvent>,
 }
@@ -50,20 +53,24 @@ impl TryFromEvents<PaymentAllocationEvent> for PaymentAllocation {
                     id,
                     obligation_id,
                     obligation_type,
+                    credit_facility_id,
                     ledger_tx_id,
                     amount,
                     account_to_be_debited_id,
                     receivable_account_id,
+                    recorded_at,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
                         .obligation_id(*obligation_id)
                         .obligation_type(*obligation_type)
+                        .credit_facility_id(*credit_facility_id)
                         .ledger_tx_id(*ledger_tx_id)
                         .amount(*amount)
                         .account_to_be_debited_id(*account_to_be_debited_id)
-                        .receivable_account_id(*receivable_account_id);
+                        .receivable_account_id(*receivable_account_id)
+                        .recorded_at(*recorded_at);
                 }
             }
         }
@@ -77,6 +84,16 @@ impl PaymentAllocation {
             .entity_first_persisted_at()
             .expect("entity_first_persisted_at not found")
     }
+
+    pub fn facility_balance_update_data(&self) -> BalanceUpdateData {
+        BalanceUpdateData {
+            source_id: self.id.into(),
+            ledger_tx_id: self.ledger_tx_id,
+            balance_type: self.obligation_type,
+            amount: self.amount,
+            updated_at: self.recorded_at,
+        }
+    }
 }
 
 #[derive(Debug, Builder, Clone)]
@@ -89,6 +106,7 @@ pub struct NewPaymentAllocation {
     pub(crate) credit_facility_id: CreditFacilityId,
     pub(crate) receivable_account_id: CalaAccountId,
     pub(crate) account_to_be_debited_id: CalaAccountId,
+    pub(crate) recorded_at: DateTime<Utc>,
     #[builder(setter(into))]
     pub(crate) amount: UsdCents,
     #[builder(setter(into))]
@@ -114,6 +132,7 @@ impl IntoEvents<PaymentAllocationEvent> for NewPaymentAllocation {
                 amount: self.amount,
                 account_to_be_debited_id: self.account_to_be_debited_id,
                 receivable_account_id: self.receivable_account_id,
+                recorded_at: self.recorded_at,
                 audit_info: self.audit_info,
             }],
         )

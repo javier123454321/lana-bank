@@ -138,14 +138,20 @@ where
             .expect("First instance of idempotent action ignored")
             .expect("First disbursal obligation was already created");
 
-        self.obligations
-            .create_with_jobs_in_op(&mut db, new_obligation)
-            .await?;
-        self.disbursal_repo
-            .update_in_op(&mut db, &mut disbursal)
-            .await?;
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)
+            .await?;
+        let obligation = self
+            .obligations
+            .create_with_jobs_in_op(&mut db, new_obligation)
+            .await?;
+        let _ = credit_facility.update_balance(
+            obligation.facility_balance_update_data(),
+            audit_info.clone(),
+        );
+
+        self.disbursal_repo
+            .update_in_op(&mut db, &mut disbursal)
             .await?;
 
         let accrual_id = credit_facility

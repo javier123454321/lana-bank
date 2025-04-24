@@ -87,13 +87,27 @@ wait_for_accruals() {
 
 wait_for_dashboard_disbursed() {
   before=$1
+  disbursed_amount=$2
+
+  expected_after="$(echo $before + $disbursed_amount | bc)"
 
   exec_admin_graphql 'dashboard'
   after=$(graphql_output '.data.dashboard.totalDisbursed')
 
-  [[ "$after" -gt "$before" ]] || exit 1
+  [[ "$after" -eq "$expected_after" ]] || exit 1
 }
 
+wait_for_dashboard_payment() {
+  before=$1
+  payment_amount=$2
+
+  expected_after="$(echo $before - $payment_amount | bc)"
+
+  exec_admin_graphql 'dashboard'
+  after=$(graphql_output '.data.dashboard.totalDisbursed')
+
+  [[ "$after" -eq "$expected_after" ]] || exit 1
+}
 
 ymd() {
   local date_value
@@ -195,7 +209,7 @@ ymd() {
   [[ "$disbursal_id" != "null" ]] || exit 1
 
   retry 10 1 wait_for_disbursal "$credit_facility_id"
-  retry 10 1 wait_for_dashboard_disbursed "$disbursed_before"
+  retry 10 1 wait_for_dashboard_disbursed "$disbursed_before" "$amount"
 }
 
 @test "credit-facility: records accrual" {
@@ -231,15 +245,20 @@ ymd() {
 @test "credit-facility: record payment" {
   credit_facility_id=$(read_value 'credit_facility_id')
 
+  exec_admin_graphql 'dashboard'
+  disbursed_before=$(graphql_output '.data.dashboard.totalDisbursed')
+
   variables=$(
     jq -n \
       --arg creditFacilityId "$credit_facility_id" \
     '{ id: $creditFacilityId }'
   )
   exec_admin_graphql 'find-credit-facility' "$variables"
-  outstanding=$(graphql_output '.data.creditFacility.balance.outstanding.usdBalance')
+  interest_outstanding=$(graphql_output '.data.creditFacility.balance.interest.outstanding.usdBalance')
+  total_outstanding=$(graphql_output '.data.creditFacility.balance.outstanding.usdBalance')
 
-  amount=25000
+  disbursed_payment=25000
+  amount="$(echo $disbursed_payment + $interest_outstanding | bc)"
   variables=$(
     jq -n \
       --arg creditFacilityId "$credit_facility_id" \
@@ -252,10 +271,15 @@ ymd() {
     }'
   )
   exec_admin_graphql 'credit-facility-partial-payment' "$variables"
-  updated_outstanding=$(
-    graphql_output '.data.creditFacilityPartialPayment.creditFacility.balance.outstanding.usdBalance'
-  )
-  [[ "$updated_outstanding" -lt "$outstanding" ]] || exit 1
+  balance=$(graphql_output '.data.creditFacilityPartialPayment.creditFacility.balance')
+
+  updated_total_outstanding=$(echo $balance | jq -r '.outstanding.usdBalance')
+  [[ "$updated_total_outstanding" -lt "$total_outstanding" ]] || exit 1
+
+  updated_interest_outstanding=$(echo $balance | jq -r '.interest.outstanding.usdBalance')
+  [[ "$updated_interest_outstanding" -eq "0" ]] || exit 1
+
+  retry 10 1 wait_for_dashboard_payment "$disbursed_before" "$disbursed_payment"
 
   # assert_accounts_balanced
 }

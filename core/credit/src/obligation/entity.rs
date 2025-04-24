@@ -5,12 +5,7 @@ use serde::{Deserialize, Serialize};
 use audit::AuditInfo;
 use es_entity::*;
 
-use crate::{
-    primitives::{
-        CalaAccountId, LedgerTxId, ObligationId, ObligationType, PaymentAllocationId, UsdCents,
-    },
-    CreditFacilityId,
-};
+use crate::{primitives::*, CreditFacilityId};
 
 use super::error::ObligationError;
 
@@ -25,7 +20,7 @@ pub enum ObligationStatus {
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct ObligationAccounts {
-    pub account_to_be_debited_id: CalaAccountId,
+    pub receivable_account_id: CalaAccountId,
     pub account_to_be_credited_id: CalaAccountId,
 }
 
@@ -75,6 +70,7 @@ impl ObligationsAmounts {
     }
 }
 
+#[allow(clippy::large_enum_variant)]
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "ObligationId")]
@@ -101,13 +97,6 @@ pub enum ObligationEvent {
     },
     OverdueRecorded {
         tx_id: LedgerTxId,
-        audit_info: AuditInfo,
-    },
-    // TODO: Remove and find from PaymentAllocation entities
-    PaymentRecorded {
-        payment_allocation_id: PaymentAllocationId,
-        amount: UsdCents,
-        recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
     Completed {
@@ -202,7 +191,7 @@ impl Obligation {
             .expect("Entity was not Initialized")
     }
 
-    pub fn account_to_be_debited_id(&self) -> Option<CalaAccountId> {
+    pub fn receivable_account_id(&self) -> Option<CalaAccountId> {
         let (not_yet_due_accounts, due_accounts, overdue_accounts) = self
             .events
             .iter_all()
@@ -218,10 +207,10 @@ impl Obligation {
             .expect("Entity was not Initialized");
 
         match self.status() {
-            ObligationStatus::NotYetDue => Some(not_yet_due_accounts.account_to_be_debited_id),
-            ObligationStatus::Due => Some(due_accounts.account_to_be_debited_id),
+            ObligationStatus::NotYetDue => Some(not_yet_due_accounts.receivable_account_id),
+            ObligationStatus::Due => Some(due_accounts.receivable_account_id),
             ObligationStatus::Overdue | ObligationStatus::Defaulted => {
-                Some(overdue_accounts.account_to_be_debited_id)
+                Some(overdue_accounts.receivable_account_id)
             }
 
             ObligationStatus::Paid => None,
@@ -299,12 +288,14 @@ impl Obligation {
             .unwrap_or(ObligationStatus::NotYetDue)
     }
 
-    fn is_not_yet_due(&self) -> bool {
-        self.status() == ObligationStatus::NotYetDue
-    }
-
-    fn is_completed(&self) -> bool {
-        self.status() == ObligationStatus::Paid
+    pub fn facility_balance_update_data(&self) -> BalanceUpdateData {
+        BalanceUpdateData {
+            source_id: self.id.into(),
+            ledger_tx_id: self.tx_id,
+            balance_type: self.obligation_type(),
+            amount: self.initial_amount,
+            updated_at: self.recorded_at,
+        }
     }
 
     pub fn outstanding(&self) -> UsdCents {
@@ -330,8 +321,8 @@ impl Obligation {
         let res = ObligationDueReallocationData {
             tx_id: LedgerTxId::new(),
             amount: self.outstanding(),
-            not_yet_due_account_id: self.not_yet_due_accounts().account_to_be_debited_id,
-            due_account_id: self.due_accounts().account_to_be_debited_id,
+            not_yet_due_account_id: self.not_yet_due_accounts().receivable_account_id,
+            due_account_id: self.due_accounts().receivable_account_id,
         };
 
         self.events.push(ObligationEvent::DueRecorded {
@@ -358,8 +349,8 @@ impl Obligation {
         let res = ObligationOverdueReallocationData {
             tx_id: LedgerTxId::new(),
             outstanding_amount: self.outstanding(),
-            due_account_id: self.due_accounts().account_to_be_debited_id,
-            overdue_account_id: self.overdue_accounts().account_to_be_debited_id,
+            due_account_id: self.due_accounts().receivable_account_id,
+            overdue_account_id: self.overdue_accounts().receivable_account_id,
         };
 
         self.events.push(ObligationEvent::OverdueRecorded {
@@ -368,35 +359,6 @@ impl Obligation {
         });
 
         Ok(Idempotent::Executed(res))
-    }
-
-    pub(crate) fn record_payment(
-        &mut self,
-        payment_allocation_id: PaymentAllocationId,
-        amount: UsdCents,
-        recorded_at: DateTime<Utc>,
-        audit_info: AuditInfo,
-    ) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            ObligationEvent::PaymentRecorded {
-                payment_allocation_id: id_from_event,
-                ..
-            } if payment_allocation_id == *id_from_event
-        );
-
-        if self.is_not_yet_due() || self.is_completed() || amount.is_zero() {
-            return Idempotent::Ignored;
-        }
-
-        self.events.push(ObligationEvent::PaymentRecorded {
-            payment_allocation_id,
-            amount,
-            recorded_at,
-            audit_info: audit_info.clone(),
-        });
-
-        Idempotent::Executed(())
     }
 }
 
@@ -424,7 +386,6 @@ impl TryFromEvents<ObligationEvent> for Obligation {
                 }
                 ObligationEvent::DueRecorded { .. } => (),
                 ObligationEvent::OverdueRecorded { .. } => (),
-                ObligationEvent::PaymentRecorded { .. } => (),
                 ObligationEvent::Completed { .. } => (),
             }
         }
@@ -467,6 +428,33 @@ impl NewObligation {
             None => self.id.to_string(),
             Some("") => self.id.to_string(),
             Some(reference) => reference.to_string(),
+        }
+    }
+}
+
+#[derive(Clone)]
+pub(super) struct ObligationDataForAllocation {
+    pub(super) id: ObligationId,
+    pub(super) obligation_type: ObligationType,
+    pub(super) recorded_at: DateTime<Utc>,
+    pub(super) outstanding: UsdCents,
+    pub(super) receivable_account_id: CalaAccountId,
+    pub(super) account_to_be_credited_id: CalaAccountId,
+}
+
+impl From<&Obligation> for ObligationDataForAllocation {
+    fn from(obligation: &Obligation) -> Self {
+        Self {
+            id: obligation.id,
+            obligation_type: obligation.obligation_type(),
+            recorded_at: obligation.recorded_at,
+            outstanding: obligation.outstanding(),
+            receivable_account_id: obligation
+                .receivable_account_id()
+                .expect("Obligation was already paid"),
+            account_to_be_credited_id: obligation
+                .account_to_be_credited_id()
+                .expect("Obligation was already paid"),
         }
     }
 }
@@ -521,15 +509,15 @@ mod test {
             reference: "ref-01".to_string(),
             tx_id: LedgerTxId::new(),
             not_yet_due_accounts: ObligationAccounts {
-                account_to_be_debited_id: CalaAccountId::new(),
+                receivable_account_id: CalaAccountId::new(),
                 account_to_be_credited_id: CalaAccountId::new(),
             },
             due_accounts: ObligationAccounts {
-                account_to_be_debited_id: CalaAccountId::new(),
+                receivable_account_id: CalaAccountId::new(),
                 account_to_be_credited_id: CalaAccountId::new(),
             },
             overdue_accounts: ObligationAccounts {
-                account_to_be_debited_id: CalaAccountId::new(),
+                receivable_account_id: CalaAccountId::new(),
                 account_to_be_credited_id: CalaAccountId::new(),
             },
             due_date: Utc::now(),
@@ -543,7 +531,7 @@ mod test {
     #[test]
     fn record_overdue() {
         let mut obligation = obligation_from(initial_events());
-        obligation.record_due(dummy_audit_info()).did_execute();
+        let _ = obligation.record_due(dummy_audit_info());
         let res = obligation
             .record_overdue(dummy_audit_info())
             .unwrap()
