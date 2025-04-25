@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect } from "react"
+import React, { useEffect, use } from "react"
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
@@ -21,11 +21,11 @@ gql`
 function TermsTemplatePage({
   params,
 }: {
-  params: {
+  params: Promise<{
     "terms-template-id": string
-  }
+  }>
 }) {
-  const { "terms-template-id": termsTemplateId } = params
+  const { "terms-template-id": termsTemplateId } = use(params)
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
   const { setTermsTemplate } = useCreateContext()
   const navTranslations = useTranslations("Sidebar.navItems")

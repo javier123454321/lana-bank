@@ -53,6 +53,7 @@ sdl:
 	SQLX_OFFLINE=true cargo run --bin write_sdl > lana/admin-server/src/graphql/schema.graphql
 	SQLX_OFFLINE=true cargo run --bin write_customer_sdl > lana/customer-server/src/graphql/schema.graphql
 	cd apps/admin-panel && pnpm install && pnpm codegen
+	cd apps/customer-portal && pnpm install && pnpm codegen
 
 # Frontend Apps
 check-code-apps: check-code-apps-admin-panel check-code-apps-customer-portal

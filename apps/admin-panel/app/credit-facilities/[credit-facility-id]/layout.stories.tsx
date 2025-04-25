@@ -42,7 +42,9 @@ export const Default: StoryObj<typeof CreditFacilityLayout> = {
 
     return (
       <MockedProvider mocks={mocks} addTypename={false}>
-        <CreditFacilityLayout params={{ "credit-facility-id": creditFacilityId }}>
+        <CreditFacilityLayout
+          params={Promise.resolve({ "credit-facility-id": creditFacilityId })}
+        >
           <div className="border flex justify-center items-center p-12">TAB CONTENT</div>
         </CreditFacilityLayout>
       </MockedProvider>

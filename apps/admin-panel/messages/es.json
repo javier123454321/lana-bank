@@ -1262,7 +1262,8 @@
       "payment": "Pago",
       "user": "Usuario",
       "termsTemplate": "Plantilla de Términos",
-      "committee": "Comité"
+      "committee": "Comité",
+      "executeManualTransaction": "Ejecutar transacción manual"
     }
   },
   "DataTable": {

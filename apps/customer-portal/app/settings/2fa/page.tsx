@@ -21,7 +21,8 @@ import { kratosPublic } from "@/lib/kratos/sdk"
 
 const SettingsPage = async () => {
   let settingsFlowResponse: SettingsFlow
-  const cookieParam = cookies()
+  const cookiesObj = await cookies()
+  const cookieParam = cookiesObj
     .getAll()
     .reduce((acc, cookie) => `${acc}${cookie.name}=${cookie.value}; `, "")
 

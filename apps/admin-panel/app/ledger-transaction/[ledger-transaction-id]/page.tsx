@@ -2,6 +2,7 @@
 
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
+import { use } from "react"
 
 import { DetailItem } from "@lana/web/components/details"
 
@@ -54,14 +55,14 @@ gql`
 `
 
 type LedgerTransactionPageProps = {
-  params: {
+  params: Promise<{
     "ledger-transaction-id": string
-  }
+  }>
 }
 
 const LedgerTransactionPage: React.FC<LedgerTransactionPageProps> = ({ params }) => {
   const t = useTranslations("LedgerTransaction")
-  const { "ledger-transaction-id": id } = params
+  const { "ledger-transaction-id": id } = use(params)
 
   const { data, loading, error } = useLedgerTransactionQuery({
     variables: { id },

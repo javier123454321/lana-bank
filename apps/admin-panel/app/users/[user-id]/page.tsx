@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect } from "react"
+import React, { use, useEffect } from "react"
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
@@ -20,11 +20,11 @@ gql`
 function UserPage({
   params,
 }: {
-  params: {
+  params: Promise<{
     "user-id": string
-  }
+  }>
 }) {
-  const { "user-id": userId } = params
+  const { "user-id": userId } = use(params)
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
   const navTranslations = useTranslations("Sidebar.navItems")
 

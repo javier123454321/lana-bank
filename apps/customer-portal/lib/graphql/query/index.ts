@@ -15,7 +15,8 @@ export async function executeQuery<
   variables: TVariables
 }): Promise<TData | Error> {
   try {
-    const response = await getClient().query<TData, TVariables>({
+    const client = await getClient()
+    const response = await client.query<TData, TVariables>({
       query: options.document,
       variables: options.variables,
     })

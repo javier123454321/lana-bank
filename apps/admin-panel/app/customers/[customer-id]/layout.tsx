@@ -1,7 +1,7 @@
 "use client"
 
 import { gql } from "@apollo/client"
-import { useEffect } from "react"
+import { use, useEffect } from "react"
 import { useTranslations } from "next-intl"
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@lana/web/ui/tab"
@@ -48,7 +48,7 @@ export default function CustomerLayout({
   params,
 }: {
   children: React.ReactNode
-  params: { "customer-id": string }
+  params: Promise<{ "customer-id": string }>
 }) {
   const t = useTranslations("Customers.CustomerDetails.layout")
   const navTranslations = useTranslations("Sidebar.navItems")
@@ -59,7 +59,7 @@ export default function CustomerLayout({
     { id: "4", url: "/documents", tabLabel: t("tabs.documents") },
   ]
 
-  const { "customer-id": customerId } = params
+  const { "customer-id": customerId } = use(params)
   const { currentTab, handleTabChange } = useTabNavigation(TABS, customerId)
 
   const { setCustomLinks, resetToDefault } = useBreadcrumb()

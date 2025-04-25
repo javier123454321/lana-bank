@@ -14,3 +14,7 @@ export const Default = () => (
     <OtpForm type="register" flowId="flow-id" />
   </AuthTemplateCard>
 )
+
+export const WithPromiseParams = () => (
+  <RegisterOtp searchParams={Promise.resolve({ type: "register", flowId: "flow-id" })} />
+)

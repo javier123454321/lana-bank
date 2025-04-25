@@ -63,7 +63,6 @@ gql`
                   disbursal {
                     id
                     disbursalId
-                    index
                     amount
                     createdAt
                     status

@@ -1,6 +1,7 @@
 "use client"
 
 import { gql } from "@apollo/client"
+import { use } from "react"
 
 import { Documents } from "./list"
 
@@ -23,10 +24,11 @@ gql`
 export default function CustomerDocumentsPage({
   params,
 }: {
-  params: { "customer-id": string }
+  params: Promise<{ "customer-id": string }>
 }) {
+  const { "customer-id": customerId } = use(params)
   const { data, refetch } = useGetCustomerDocumentsQuery({
-    variables: { id: params["customer-id"] },
+    variables: { id: customerId },
   })
 
   if (!data?.customer) return null

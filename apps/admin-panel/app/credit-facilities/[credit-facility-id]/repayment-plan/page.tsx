@@ -1,6 +1,7 @@
 "use client"
 
 import { gql } from "@apollo/client"
+import { use } from "react"
 
 import { CreditFacilityRepaymentPlan } from "./list"
 
@@ -29,10 +30,11 @@ gql`
 export default function CreditFacilityRepaymentPlansPage({
   params,
 }: {
-  params: { "credit-facility-id": string }
+  params: Promise<{ "credit-facility-id": string }>
 }) {
+  const { "credit-facility-id": creditFacilityId } = use(params)
   const { data } = useGetCreditFacilityRepaymentPlanQuery({
-    variables: { id: params["credit-facility-id"] },
+    variables: { id: creditFacilityId },
   })
 
   if (!data?.creditFacility) return null

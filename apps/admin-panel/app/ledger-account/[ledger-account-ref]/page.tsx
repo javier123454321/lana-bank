@@ -13,7 +13,7 @@ import {
   CardTitle,
 } from "@lana/web/ui/card"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, use } from "react"
 
 import { useRouter } from "next/navigation"
 import { Button } from "@lana/web/ui/button"
@@ -117,16 +117,16 @@ gql`
 `
 
 type LedgerAccountPageProps = {
-  params: {
+  params: Promise<{
     "ledger-account-ref": string
-  }
+  }>
 }
 
 const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
   const router = useRouter()
   const t = useTranslations("ChartOfAccountsLedgerAccount")
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false)
-  const { "ledger-account-ref": ref } = params
+  const { "ledger-account-ref": ref } = use(params)
   const isRefUUID = isUUID(ref)
 
   const [isAncestorsOpen, setIsAncestorsOpen] = useState(false)

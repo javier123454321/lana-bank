@@ -7,4 +7,6 @@ export default {
   component: TwoFactorAuthPage,
 }
 
-export const Default = () => <TwoFactorAuthPage searchParams={{ flowId: "string" }} />
+export const Default = () => (
+  <TwoFactorAuthPage searchParams={Promise.resolve({ flowId: "string" })} />
+)

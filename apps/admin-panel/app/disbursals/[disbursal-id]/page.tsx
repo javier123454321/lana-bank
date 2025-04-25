@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect } from "react"
+import React, { useEffect, use } from "react"
 import { gql } from "@apollo/client"
 
 import { DisbursalDetailsCard } from "./details"
@@ -45,11 +45,11 @@ gql`
 function DisbursalPage({
   params,
 }: {
-  params: {
+  params: Promise<{
     "disbursal-id": string
-  }
+  }>
 }) {
-  const { "disbursal-id": disbursalId } = params
+  const { "disbursal-id": disbursalId } = use(params)
   const { data, loading, error } = useGetDisbursalDetailsQuery({
     variables: { id: disbursalId },
   })

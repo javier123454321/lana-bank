@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect } from "react"
+import React, { useEffect, use } from "react"
 
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
@@ -25,11 +25,11 @@ gql`
 function CommitteePage({
   params,
 }: {
-  params: {
+  params: Promise<{
     "committee-id": string
-  }
+  }>
 }) {
-  const { "committee-id": committeeId } = params
+  const { "committee-id": committeeId } = use(params)
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
   const { setCommittee } = useCreateContext()
   const navTranslations = useTranslations("Sidebar.navItems")

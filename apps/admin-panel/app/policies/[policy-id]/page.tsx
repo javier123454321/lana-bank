@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect } from "react"
+import React, { useEffect, use } from "react"
 import { gql } from "@apollo/client"
 
 import { useTranslations } from "next-intl"
@@ -37,11 +37,11 @@ gql`
 function PolicyPage({
   params,
 }: {
-  params: {
+  params: Promise<{
     "policy-id": string
-  }
+  }>
 }) {
-  const { "policy-id": policyId } = params
+  const { "policy-id": policyId } = use(params)
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
   const { setPolicy } = useCreateContext()
   const navTranslations = useTranslations("Sidebar.navItems")

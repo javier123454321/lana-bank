@@ -1,7 +1,7 @@
 "use client"
 import { gql } from "@apollo/client"
 
-import { useEffect } from "react"
+import { useEffect, use } from "react"
 
 import WithdrawalDetailsCard from "./details"
 
@@ -45,11 +45,11 @@ gql`
 function WithdrawalPage({
   params,
 }: {
-  params: {
+  params: Promise<{
     "withdrawal-id": string
-  }
+  }>
 }) {
-  const { "withdrawal-id": withdrawalId } = params
+  const { "withdrawal-id": withdrawalId } = use(params)
   const { setWithdraw } = useCreateContext()
 
   const { data, loading, error } = useGetWithdrawalDetailsQuery({

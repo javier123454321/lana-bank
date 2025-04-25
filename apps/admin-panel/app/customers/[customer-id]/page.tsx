@@ -1,6 +1,7 @@
 "use client"
 
 import { gql } from "@apollo/client"
+import { use } from "react"
 
 import { CustomerTransactionsTable } from "./transactions"
 
@@ -90,11 +91,12 @@ gql`
 export default function CustomerTransactionsPage({
   params,
 }: {
-  params: { "customer-id": string }
+  params: Promise<{ "customer-id": string }>
 }) {
+  const { "customer-id": customerId } = use(params)
   const { data, error } = useGetCustomerTransactionHistoryQuery({
     variables: {
-      id: params["customer-id"],
+      id: customerId,
       first: 100,
       after: null,
     },

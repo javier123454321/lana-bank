@@ -48,7 +48,7 @@ const WithdrawalStory = (args: WithdrawalStoryArgs) => {
   const mocks = createMocks(args, withdrawalId)
   return (
     <MockedProvider mocks={mocks} addTypename={false} key={JSON.stringify(args)}>
-      <WithdrawalPage params={{ "withdrawal-id": withdrawalId }} />
+      <WithdrawalPage params={Promise.resolve({ "withdrawal-id": withdrawalId })} />
     </MockedProvider>
   )
 }
@@ -67,7 +67,7 @@ const LoadingStory = () => {
 
   return (
     <MockedProvider mocks={mocks} addTypename={false}>
-      <WithdrawalPage params={{ "withdrawal-id": withdrawalId }} />
+      <WithdrawalPage params={Promise.resolve({ "withdrawal-id": withdrawalId })} />
     </MockedProvider>
   )
 }

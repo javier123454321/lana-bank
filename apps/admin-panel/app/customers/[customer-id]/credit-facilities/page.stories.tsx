@@ -88,12 +88,12 @@ const pageMocks = [
 
 export const Default: Story = {
   args: {
-    params: mockParams,
+    params: Promise.resolve(mockParams),
   },
   decorators: [
     (Story) => (
       <MockedProvider mocks={layoutMocks} addTypename={false}>
-        <CustomerLayout params={mockParams}>
+        <CustomerLayout params={Promise.resolve(mockParams)}>
           <MockedProvider mocks={pageMocks} addTypename={false}>
             <Story />
           </MockedProvider>

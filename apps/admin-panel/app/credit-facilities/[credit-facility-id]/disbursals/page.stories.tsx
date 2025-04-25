@@ -75,12 +75,12 @@ const disbursalsMocks = [
 
 export const Default: Story = {
   args: {
-    params: mockParams,
+    params: Promise.resolve(mockParams),
   },
   decorators: [
     (Story) => (
       <MockedProvider mocks={layoutMocks} addTypename={false}>
-        <CreditFacilityLayout params={mockParams}>
+        <CreditFacilityLayout params={Promise.resolve(mockParams)}>
           <MockedProvider mocks={disbursalsMocks} addTypename={false}>
             <Story />
           </MockedProvider>

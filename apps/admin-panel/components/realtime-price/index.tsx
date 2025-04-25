@@ -14,12 +14,10 @@ gql`
 `
 
 const RealtimePriceUpdates = () => {
-  const { data } = useGetRealtimePriceUpdatesQuery({
+  useGetRealtimePriceUpdatesQuery({
     fetchPolicy: "network-only",
     pollInterval: 5000,
   })
-
-  if (!data?.realtimePrice.usdCentsPerBtc) console.error("price not available")
 
   return <></>
 }

@@ -60,7 +60,9 @@ const LedgerAccountStory = () => {
 
   return (
     <MockedProvider mocks={mocks} addTypename={false}>
-      <LedgerAccountPage params={{ "ledger-account-ref": ledgerAccountCode }} />
+      <LedgerAccountPage
+        params={Promise.resolve({ "ledger-account-ref": ledgerAccountCode })}
+      />
     </MockedProvider>
   )
 }
@@ -98,7 +100,9 @@ export const Error: Story = {
 
     return (
       <MockedProvider mocks={errorMocks} addTypename={false}>
-        <LedgerAccountPage params={{ "ledger-account-ref": ledgerAccountCode }} />
+        <LedgerAccountPage
+          params={Promise.resolve({ "ledger-account-ref": ledgerAccountCode })}
+        />
       </MockedProvider>
     )
   },
@@ -118,7 +122,9 @@ const LoadingStory = () => {
 
   return (
     <MockedProvider mocks={mocks} addTypename={false}>
-      <LedgerAccountPage params={{ "ledger-account-ref": ledgerAccountCode }} />
+      <LedgerAccountPage
+        params={Promise.resolve({ "ledger-account-ref": ledgerAccountCode })}
+      />
     </MockedProvider>
   )
 }

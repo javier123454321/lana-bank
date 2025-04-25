@@ -38,7 +38,7 @@ const TermsTemplateStory = (args: TermsTemplateStoryArgs) => {
 
   return (
     <MockedProvider mocks={mocks} addTypename={false} key={JSON.stringify(args)}>
-      <TermsTemplatePage params={{ "terms-template-id": templateId }} />
+      <TermsTemplatePage params={Promise.resolve({ "terms-template-id": templateId })} />
     </MockedProvider>
   )
 }
@@ -57,7 +57,7 @@ const LoadingStory = () => {
 
   return (
     <MockedProvider mocks={mocks} addTypename={false}>
-      <TermsTemplatePage params={{ "terms-template-id": templateId }} />
+      <TermsTemplatePage params={Promise.resolve({ "terms-template-id": templateId })} />
     </MockedProvider>
   )
 }

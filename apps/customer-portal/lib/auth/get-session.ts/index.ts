@@ -19,7 +19,8 @@ export const getMeAndSession = async (): Promise<
     return meQueryResponse
   }
 
-  const cookieParam = cookies()
+  const cookiesObj = await cookies()
+  const cookieParam = cookiesObj
     .getAll()
     .reduce((acc, cookie) => `${acc}${cookie.name}=${cookie.value}; `, "")
 

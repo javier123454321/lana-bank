@@ -1,6 +1,7 @@
 "use client"
 
 import { gql } from "@apollo/client"
+import { use } from "react"
 
 import { CreditFacilityTransactions } from "./transaction"
 
@@ -57,16 +58,17 @@ gql`
 `
 
 interface CreditFacilityTransactionsPageProps {
-  params: {
+  params: Promise<{
     "credit-facility-id": string
-  }
+  }>
 }
 
 export default function CreditFacilityTransactionsPage({
   params,
 }: CreditFacilityTransactionsPageProps) {
+  const { "credit-facility-id": creditFacilityId } = use(params)
   const { data } = useGetCreditFacilityTransactionsQuery({
-    variables: { id: params["credit-facility-id"] },
+    variables: { id: creditFacilityId },
     fetchPolicy: "cache-and-network",
   })
 

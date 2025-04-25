@@ -718,6 +718,7 @@ checksums:
     CreateButton/menuItems/user: 61073457a5c3901084b557d065f876be
     CreateButton/menuItems/termsTemplate: 21fcfdd286d7253fb4818bd0db3b12db
     CreateButton/menuItems/committee: d856e06fc77be0f7b3611d671e3dd0ec
+    CreateButton/menuItems/executeManualTransaction: 53bf9bf8b9aba6e1ec1b0dcb70ca0ad8
     DataTable/view: 36a9b5e3dc153c036d320460d72a03c3
     DataTable/noData: d30b546a626d903d1ec1b466b2b4b865
     PaginatedTable/view: 36a9b5e3dc153c036d320460d72a03c3

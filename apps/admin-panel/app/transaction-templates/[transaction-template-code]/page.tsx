@@ -1,5 +1,6 @@
 "use client"
 
+import { use } from "react"
 import { useTranslations } from "next-intl"
 
 import { gql } from "@apollo/client"
@@ -55,14 +56,15 @@ gql`
 `
 
 type LedgerTransactionsForTemplateCodeProps = {
-  params: {
+  params: Promise<{
     "transaction-template-code": string
-  }
+  }>
 }
 
 const LedgerTransactionsForTemplateCode: React.FC<
   LedgerTransactionsForTemplateCodeProps
-> = ({ params: { "transaction-template-code": transactionTemplateCode } }) => {
+> = ({ params }) => {
+  const { "transaction-template-code": transactionTemplateCode } = use(params)
   const t = useTranslations("LedgerTransactionsForTemplateCode")
 
   const { data, loading, error, fetchMore } = useLedgerTransactionsForTemplateCodeQuery({

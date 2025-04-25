@@ -1262,7 +1262,8 @@
       "payment": "Payment",
       "user": "User",
       "termsTemplate": "Terms Template",
-      "committee": "Committee"
+      "committee": "Committee",
+      "executeManualTransaction": "Execute Manual Transaction"
     }
   },
   "DataTable": {

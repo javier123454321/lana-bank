@@ -4,7 +4,7 @@ import { cookies, headers } from "next/headers"
 const locales = ["en", "es"]
 
 export default getRequestConfig(async () => {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const localeCookie = cookieStore.get("NEXT_LOCALE")
 
   if (localeCookie?.value) {
@@ -15,7 +15,7 @@ export default getRequestConfig(async () => {
     }
   }
 
-  const headersList = headers()
+  const headersList = await headers()
   const acceptLanguage = headersList.get("accept-language") || ""
 
   const userLocales = acceptLanguage

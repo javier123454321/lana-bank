@@ -55,7 +55,7 @@ const DisbursalStory = (args: DisbursalStoryArgs) => {
 
   return (
     <MockedProvider mocks={mocks} addTypename={false} key={JSON.stringify(args)}>
-      <DisbursalPage params={{ "disbursal-id": disbursalId }} />
+      <DisbursalPage params={Promise.resolve({ "disbursal-id": disbursalId })} />
     </MockedProvider>
   )
 }
@@ -74,7 +74,7 @@ const LoadingStory = () => {
 
   return (
     <MockedProvider mocks={mocks} addTypename={false}>
-      <DisbursalPage params={{ "disbursal-id": disbursalId }} />
+      <DisbursalPage params={Promise.resolve({ "disbursal-id": disbursalId })} />
     </MockedProvider>
   )
 }

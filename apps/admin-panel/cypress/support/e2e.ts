@@ -18,6 +18,17 @@
 import "./commands"
 import { t } from "./translation"
 
+Cypress.on("window:before:load", (win) => {
+  const style = win.document.createElement("style")
+  style.innerHTML = `
+    nextjs-portal,
+    [data-nextjs-toast-wrapper] {
+      display: none !important;
+    }
+  `
+  win.document.head.appendChild(style)
+})
+
 const testLanguage = Cypress.env("TEST_LANGUAGE")
 beforeEach(() => {
   cy.session(

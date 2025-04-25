@@ -6,12 +6,12 @@ import { TotpForm } from "@/components/auth/totp-form"
 async function TwoFactorAuthWithTotpPage({
   searchParams,
 }: {
-  searchParams: {
+  searchParams: Promise<{
     flowId?: string
-  }
+  }>
 }) {
-  if (!searchParams.flowId) redirect("/auth")
-  const { flowId } = searchParams
+  const { flowId } = await searchParams
+  if (!flowId) redirect("/auth")
 
   return (
     <AuthTemplateCard>

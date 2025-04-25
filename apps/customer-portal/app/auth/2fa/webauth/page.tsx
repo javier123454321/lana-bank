@@ -17,12 +17,13 @@ import {
 async function TwoFactorAuthWithWebAuthPage({
   searchParams,
 }: {
-  searchParams: {
+  searchParams: Promise<{
     flowId?: string
-  }
+  }>
 }) {
-  const flowId = searchParams?.flowId
-  const allCookies = cookies().getAll()
+  const { flowId } = await searchParams
+  const cookiesObj = await cookies()
+  const allCookies = cookiesObj.getAll()
   let signInFlow: LoginFlow
 
   if (!flowId) redirect("/auth")

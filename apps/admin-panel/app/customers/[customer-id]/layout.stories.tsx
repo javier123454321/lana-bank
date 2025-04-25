@@ -60,7 +60,7 @@ const LoadingStory = () => {
 
   return (
     <MockedProvider mocks={mocks} addTypename={false}>
-      <CustomerLayout params={{ "customer-id": "4178b451-c9cb-4841-b248-5cc20e7774a6" }}>
+      <CustomerLayout params={Promise.resolve(mockParams)}>
         <div className="border flex justify-center items-center p-12">TAB CONTENT</div>
       </CustomerLayout>
     </MockedProvider>
@@ -69,7 +69,7 @@ const LoadingStory = () => {
 
 export const Default: Story = {
   args: {
-    params: mockParams,
+    params: Promise.resolve(mockParams),
     children: (
       <div className="border flex justify-center items-center p-12">TAB CONTENT</div>
     ),
@@ -85,7 +85,7 @@ export const Default: Story = {
 
 export const Loading: Story = {
   args: {
-    params: mockParams,
+    params: Promise.resolve(mockParams),
     children: (
       <div className="border flex justify-center items-center p-12">TAB CONTENT</div>
     ),

@@ -1,7 +1,7 @@
 "use client"
 
 import { gql, useApolloClient } from "@apollo/client"
-import { useEffect } from "react"
+import { use, useEffect } from "react"
 import { useTranslations } from "next-intl"
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@lana/web/ui/tab"
@@ -116,12 +116,12 @@ export default function CreditFacilityLayout({
   params,
 }: {
   children: React.ReactNode
-  params: { "credit-facility-id": string }
+  params: Promise<{ "credit-facility-id": string }>
 }) {
   const t = useTranslations("CreditFacilities.CreditFacilityDetails.Layout")
   const navTranslations = useTranslations("Sidebar.navItems")
 
-  const { "credit-facility-id": creditFacilityId } = params
+  const { "credit-facility-id": creditFacilityId } = use(params)
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
   const client = useApolloClient()
   const { setFacility } = useCreateContext()

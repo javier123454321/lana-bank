@@ -42,7 +42,7 @@ const UserStory = (args: UserStoryArgs) => {
   const mocks = createMocks(args, userId)
   return (
     <MockedProvider mocks={mocks} addTypename={false} key={JSON.stringify(args)}>
-      <UserPage params={{ "user-id": userId }} />
+      <UserPage params={Promise.resolve({ "user-id": userId })} />
     </MockedProvider>
   )
 }
@@ -61,7 +61,7 @@ const LoadingStory = () => {
 
   return (
     <MockedProvider mocks={mocks} addTypename={false}>
-      <UserPage params={{ "user-id": userId }} />
+      <UserPage params={Promise.resolve({ "user-id": userId })} />
     </MockedProvider>
   )
 }

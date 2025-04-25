@@ -1,6 +1,7 @@
 "use client"
 
 import { gql } from "@apollo/client"
+import { use } from "react"
 
 import { CustomerCreditFacilitiesTable } from "./list"
 
@@ -32,10 +33,11 @@ gql`
 export default function CustomerCreditFacilitiesPage({
   params,
 }: {
-  params: { "customer-id": string }
+  params: Promise<{ "customer-id": string }>
 }) {
+  const { "customer-id": customerId } = use(params)
   const { data } = useGetCustomerCreditFacilitiesQuery({
-    variables: { id: params["customer-id"] },
+    variables: { id: customerId },
   })
 
   if (!data?.customer) return null

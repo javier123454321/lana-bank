@@ -56,7 +56,7 @@ const CommitteeStory = (args: CommitteeStoryArgs) => {
 
   return (
     <MockedProvider mocks={mocks} addTypename={false} key={JSON.stringify(args)}>
-      <CommitteePage params={{ "committee-id": committeeId }} />
+      <CommitteePage params={Promise.resolve({ "committee-id": committeeId })} />
     </MockedProvider>
   )
 }
@@ -118,7 +118,9 @@ export const Error: Story = {
 
     return (
       <MockedProvider mocks={errorMocks} addTypename={false}>
-        <CommitteePage params={{ "committee-id": faker.string.uuid() }} />
+        <CommitteePage
+          params={Promise.resolve({ "committee-id": faker.string.uuid() })}
+        />
       </MockedProvider>
     )
   },
@@ -138,7 +140,7 @@ const LoadingStory = () => {
 
   return (
     <MockedProvider mocks={mocks} addTypename={false}>
-      <CommitteePage params={{ "committee-id": committeeId }} />
+      <CommitteePage params={Promise.resolve({ "committee-id": committeeId })} />
     </MockedProvider>
   )
 }

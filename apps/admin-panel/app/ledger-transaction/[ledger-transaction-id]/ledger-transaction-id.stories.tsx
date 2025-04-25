@@ -29,7 +29,9 @@ const LedgerTransactionStory = () => {
 
   return (
     <MockedProvider mocks={mocks} addTypename={false}>
-      <LedgerTransactionPage params={{ "ledger-transaction-id": ledgerTransactionId }} />
+      <LedgerTransactionPage
+        params={Promise.resolve({ "ledger-transaction-id": ledgerTransactionId })}
+      />
     </MockedProvider>
   )
 }
@@ -68,7 +70,7 @@ export const Error: Story = {
     return (
       <MockedProvider mocks={errorMocks} addTypename={false}>
         <LedgerTransactionPage
-          params={{ "ledger-transaction-id": ledgerTransactionId }}
+          params={Promise.resolve({ "ledger-transaction-id": ledgerTransactionId })}
         />
       </MockedProvider>
     )
@@ -88,7 +90,9 @@ const LoadingStory = () => {
 
   return (
     <MockedProvider mocks={mocks} addTypename={false}>
-      <LedgerTransactionPage params={{ "ledger-transaction-id": ledgerTransactionId }} />
+      <LedgerTransactionPage
+        params={Promise.resolve({ "ledger-transaction-id": ledgerTransactionId })}
+      />
     </MockedProvider>
   )
 }
