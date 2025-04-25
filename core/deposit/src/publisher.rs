@@ -2,6 +2,7 @@ use outbox::{Outbox, OutboxEventMarker};
 
 use super::event::CoreDepositEvent;
 use crate::{
+    account::{error::DepositAccountError, DepositAccount, DepositAccountEvent},
     deposit::{error::DepositError, Deposit, DepositEvent},
     withdrawal::{error::WithdrawalError, Withdrawal, WithdrawalEvent},
 };
@@ -32,6 +33,28 @@ where
         Self {
             outbox: outbox.clone(),
         }
+    }
+
+    pub async fn publish_deposit_account(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        entity: &DepositAccount,
+        new_events: es_entity::LastPersisted<'_, DepositAccountEvent>,
+    ) -> Result<(), DepositAccountError> {
+        use DepositAccountEvent::*;
+        let publish_events = new_events
+            .filter_map(|event| match &event.event {
+                Initialized { .. } => Some(CoreDepositEvent::DepositAccountCreated {
+                    id: entity.id,
+                    account_holder_id: entity.account_holder_id,
+                }),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+        self.outbox
+            .publish_all_persisted(db.tx(), publish_events)
+            .await?;
+        Ok(())
     }
 
     pub async fn publish_withdrawal(

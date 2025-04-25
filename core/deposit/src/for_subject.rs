@@ -23,7 +23,7 @@ where
 {
     account_holder_id: DepositAccountHolderId,
     sub: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-    accounts: &'a DepositAccountRepo,
+    accounts: &'a DepositAccountRepo<E>,
     deposits: &'a DepositRepo<E>,
     withdrawals: &'a WithdrawalRepo<E>,
     ledger: &'a DepositLedger,
@@ -42,7 +42,7 @@ where
     pub(super) fn new(
         subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         account_holder_id: DepositAccountHolderId,
-        accounts: &'a DepositAccountRepo,
+        accounts: &'a DepositAccountRepo<E>,
         deposits: &'a DepositRepo<E>,
         withdrawals: &'a WithdrawalRepo<E>,
         ledger: &'a DepositLedger,

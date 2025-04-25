@@ -51,7 +51,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    accounts: DepositAccountRepo,
+    accounts: DepositAccountRepo<E>,
     deposits: DepositRepo<E>,
     withdrawals: WithdrawalRepo<E>,
     approve_withdrawal: ApproveWithdrawal<Perms, E>,
@@ -102,7 +102,7 @@ where
         journal_id: CalaJournalId,
     ) -> Result<Self, CoreDepositError> {
         let publisher = DepositPublisher::new(outbox);
-        let accounts = DepositAccountRepo::new(pool);
+        let accounts = DepositAccountRepo::new(pool, &publisher);
         let deposits = DepositRepo::new(pool, &publisher);
         let withdrawals = WithdrawalRepo::new(pool, &publisher);
         let ledger = DepositLedger::init(cala, journal_id).await?;

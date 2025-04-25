@@ -4,11 +4,11 @@
 use serde::{Deserialize, Serialize};
 
 pub use core_credit::{CoreCreditEvent, FacilityCollateralUpdateAction};
-use core_customer::CoreCustomerEvent;
-use core_user::CoreUserEvent;
-use deposit::CoreDepositEvent;
-use governance::GovernanceEvent;
-use outbox::OutboxEventMarker;
+pub use core_customer::CoreCustomerEvent;
+pub use core_user::CoreUserEvent;
+pub use deposit::CoreDepositEvent;
+pub use governance::GovernanceEvent;
+pub use outbox::OutboxEventMarker;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "module")]
