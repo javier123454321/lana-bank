@@ -86,7 +86,7 @@ pub enum ObligationEvent {
         due_accounts: ObligationAccounts,
         overdue_accounts: ObligationAccounts,
         due_date: DateTime<Utc>,
-        overdue_date: DateTime<Utc>,
+        overdue_date: Option<DateTime<Utc>>,
         defaulted_date: Option<DateTime<Utc>>,
         recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
@@ -146,14 +146,11 @@ impl Obligation {
             .expect("Entity was not Initialized")
     }
 
-    pub fn overdue_at(&self) -> DateTime<Utc> {
-        self.events
-            .iter_all()
-            .find_map(|e| match e {
-                ObligationEvent::Initialized { overdue_date, .. } => Some(*overdue_date),
-                _ => None,
-            })
-            .expect("Entity was not Initialized")
+    pub fn overdue_at(&self) -> Option<DateTime<Utc>> {
+        self.events.iter_all().find_map(|e| match e {
+            ObligationEvent::Initialized { overdue_date, .. } => *overdue_date,
+            _ => None,
+        })
     }
 
     pub fn not_yet_due_accounts(&self) -> ObligationAccounts {
@@ -266,9 +263,13 @@ impl Obligation {
             }
         }
 
-        if now >= overdue_date {
-            ObligationStatus::Overdue
-        } else if now >= due_date {
+        if let Some(overdue_date) = overdue_date {
+            if now >= overdue_date {
+                return ObligationStatus::Overdue;
+            }
+        }
+
+        if now >= due_date {
             ObligationStatus::Due
         } else {
             ObligationStatus::NotYetDue
@@ -410,7 +411,8 @@ pub struct NewObligation {
     due_accounts: ObligationAccounts,
     due_date: DateTime<Utc>,
     overdue_accounts: ObligationAccounts,
-    overdue_date: DateTime<Utc>,
+    #[builder(setter(strip_option), default)]
+    overdue_date: Option<DateTime<Utc>>,
     #[builder(setter(strip_option), default)]
     defaulted_date: Option<DateTime<Utc>>,
     recorded_at: DateTime<Utc>,
@@ -521,7 +523,7 @@ mod test {
                 account_to_be_credited_id: CalaAccountId::new(),
             },
             due_date: Utc::now(),
-            overdue_date: Utc::now(),
+            overdue_date: Some(Utc::now()),
             defaulted_date: None,
             recorded_at: Utc::now(),
             audit_info: dummy_audit_info(),

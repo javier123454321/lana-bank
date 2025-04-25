@@ -302,7 +302,6 @@ impl InterestAccrualCycle {
                     account_to_be_credited_id: self.account_ids.interest_income_account_id,
                 })
                 .due_date(self.accrual_cycle_ends_at())
-                .overdue_date(self.accrual_cycle_ends_at())
                 .recorded_at(posted_at)
                 .audit_info(audit_info)
                 .build()

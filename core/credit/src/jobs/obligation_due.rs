@@ -132,17 +132,19 @@ where
             .update_in_op(&mut db, &mut obligation)
             .await?;
 
-        self.jobs
-            .create_and_spawn_at_in_op(
-                &mut db,
-                JobId::new(),
-                obligation_overdue::CreditFacilityJobConfig::<Perms, E> {
-                    obligation_id: obligation.id,
-                    _phantom: std::marker::PhantomData,
-                },
-                obligation.overdue_at(),
-            )
-            .await?;
+        if let Some(overdue_at) = obligation.overdue_at() {
+            self.jobs
+                .create_and_spawn_at_in_op(
+                    &mut db,
+                    JobId::new(),
+                    obligation_overdue::CreditFacilityJobConfig::<Perms, E> {
+                        obligation_id: obligation.id,
+                        _phantom: std::marker::PhantomData,
+                    },
+                    overdue_at,
+                )
+                .await?;
+        }
 
         self.ledger.record_obligation_due(db, due).await?;
 
