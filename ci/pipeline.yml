@@ -1,10 +1,8 @@
 #@ load("@ytt:data", "data")
 
 #@ load("vendor/pipeline-fragments.lib.yml",
-#@   "build_edge_image",
 #@   "public_docker_registry",
 #@   "nodejs_task_image_config",
-#@   "check_code",
 #@   "docker_host_pool",
 #@   "test_on_docker_host",
 #@   "repo_resource",
@@ -69,10 +67,10 @@ plan:
 groups:
   - name: lana-bank
     jobs:
-      - check-code
+      - nodejs-check-code
+      - rust-check-code
       - integration-tests
       - bats-tests
-      - build-edge-image
       - release
       - release-docker
       - set-dev-version
@@ -80,20 +78,115 @@ groups:
       -  #@ build_app_edge_image_name("admin-panel")
       -  #@ build_app_edge_image_name("customer-portal")
       - build-meltano-edge-image
+      - build-static-binary
 
 jobs:
-  -  #@ check_code()
   -  #@ on_nix_host("integration-tests", "make test-in-ci")
   -  #@ on_nix_host("bats-tests", "make e2e")
-  -  #@ build_edge_image()
+
+  - name: rust-check-code
+    serial: true
+    plan:
+    - in_parallel:
+      - { get: repo, trigger: true }
+      - { get: pipeline-tasks }
+    - task: check-code
+      config:
+        platform: linux
+        image_resource: #@ rust_task_image_config()
+        inputs:
+        - name: pipeline-tasks
+        - name: repo
+        caches:
+        - path: cargo-home
+        - path: cargo-target-dir
+        run:
+          path: pipeline-tasks/ci/vendor/tasks/rust-check-code.sh
+
+  - name: nodejs-check-code
+    serial: true
+    plan:
+    - in_parallel:
+      - { get: repo, trigger: true }
+      - { get: pipeline-tasks }
+    - task: check-code
+      config:
+        platform: linux
+        image_resource: #@ nodejs_task_image_config()
+        inputs:
+        - name: pipeline-tasks
+        - name: repo
+        run:
+          path: pipeline-tasks/ci/tasks/check-code-apps.sh
+
+  - name: build-static-binary
+    serial: true
+    plan:
+    - in_parallel:
+      - get: repo
+        trigger: true
+      - get: pipeline-tasks
+    - task: cargo-build-release
+      config:
+        platform: linux
+        image_resource:
+          type: registry-image
+          source: {repository: clux/muslrust, tag: stable}
+        inputs:
+        - name: pipeline-tasks
+        - name: repo
+        outputs: [{name: bin}]
+        caches:  [{path: cargo-target}, {path: cargo-home}]
+        run:
+          path: sh
+          args:
+          - -exc
+          - |
+            export CARGO_HOME="$PWD/cargo-home"
+            export CARGO_TARGET_DIR="$PWD/cargo-target-dir"
+            cd repo
+            SQLX_OFFLINE=true cargo build --release --locked --bin lana-cli --target x86_64-unknown-linux-musl
+            mkdir -p ../bin
+            cp "${CARGO_TARGET_DIR}/x86_64-unknown-linux-musl/release/lana-cli" ../bin/
+            cat > ../bin/Dockerfile <<'EOF'
+            FROM scratch
+            COPY lana-cli /lana-cli
+            ENTRYPOINT ["/lana-cli"]
+            EOF
+    - task: build-image-with-kaniko
+      privileged: true
+      config:
+        platform: linux
+        image_resource:
+          type: registry-image
+          source:
+            repository: gcr.io/kaniko-project/executor
+            tag: debug
+        inputs:  [{name: bin}]
+        outputs: [{name: image}]
+        run:
+          path: /kaniko/executor
+          args:
+            - --dockerfile=Dockerfile
+            - --context=bin
+            - --use-new-run
+            - --single-snapshot
+            - --cache=false
+            - --no-push
+            - --tar-path=image/image.tar
+    - put: static-binary-image
+      params:
+        image: image/image.tar
+        additional_tags: repo/.git/ref  
 
   - name: release
     serial: true
     plan:
       - in_parallel:
           - get: repo
-            passed:
-              - check-code
+            passed: 
+              - nodejs-check-code
+              - rust-check-code
               - integration-tests
               - bats-tests
             trigger: true
@@ -141,28 +234,30 @@ jobs:
               path: customer-portal-src
           run:
             path: pipeline-tasks/ci/tasks/prep-release-apps.sh
+      - get: static-binary-image
+        passed: [build-static-binary]
+        trigger: true
+        params: {format: oci-layout}
+      - task: unwrap-binary
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source: {repository: alpine, tag: "3.20"}
+          inputs: [{name: static-binary-image}]
+          outputs: [{name: binaries}]
+          caches: [{path: apk-cache}]
+          run:
+            path: sh
+            args:
+            - -exc
+            - |
+              apk add --no-cache tar
+
+              TAR_FILE=$(find static-binary-image/oci/blobs/sha256 -type f -size +100k | head -n1)
+              echo "TAR_FILE: ${TAR_FILE}"
+              tar -C binaries --strip-components=0 -xf "${TAR_FILE}"
       - in_parallel:
-        - task: build-static-release
-          privileged: true
-          config:
-            platform: linux
-            image_resource:
-              type: registry-image
-              source: { repository: clux/muslrust, tag: 1.78.0-stable }
-            inputs:
-              - name: version
-              - name: pipeline-tasks
-              - name: repo
-            outputs:
-              - name: x86_64-unknown-linux-musl
-            caches:
-              - path: cargo-home
-              - path: cargo-target-dir
-            params:
-              TARGET: x86_64-unknown-linux-musl
-              OUT: x86_64-unknown-linux-musl
-            run:
-              path: pipeline-tasks/ci/tasks/build-release.sh
         - do:
           - task: build-admin-panel-release
             attempts: 2
@@ -221,7 +316,7 @@ jobs:
           image_resource: #@ rust_task_image_config()
           platform: linux
           inputs:
-            - name: x86_64-unknown-linux-musl
+            - name: binaries
             - name: version
             - name: pipeline-tasks
             - name: artifacts
@@ -435,7 +530,7 @@ resources:
         - apps/**/*
       fetch_tags: true
       uri: #@ data.values.git_uri
-      branch: #@ data.values.git_branch
+      branch: ci--discrepency-between-local-cargo-and-deployed-cargo
       private_key: #@ data.values.github_private_key
     webhook_token: ((webhook.secret))
   - name: repo-dev-out
@@ -453,7 +548,7 @@ resources:
       tag: latest
       username: #@ data.values.docker_registry_user
       password: #@ data.values.docker_registry_password
-      repository: #@ private_docker_registry() + "/" + data.values.gh_repository
+      repository: #@ private_docker_registry() + "/" + data.values.folder_registry_image
 
   - name: nix-host
     type: pool
@@ -479,8 +574,15 @@ resources:
       password: #@ data.values.docker_registry_password
       repository: #@ public_docker_registry() + "/meltano"
 
+  - name: static-binary-image
+    type: registry-image
+    source:
+      tag: latest
+      repository: #@ private_docker_registry() + "/" + data.values.folder_registry_image_static
+      username: #@ data.values.docker_registry_user
+      password: #@ data.values.docker_registry_password
+
   -  #@ pipeline_tasks_resource()
-  -  #@ edge_image_resource(publicRepo=False)
   -  #@ version_resource()
   -  #@ gh_release_resource()
   -  #@ charts_repo_bot_branch()

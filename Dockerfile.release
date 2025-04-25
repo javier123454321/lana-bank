@@ -24,3 +24,18 @@ FROM gcr.io/distroless/static
   ENV COMMITHASH ${COMMITHASH}
   ENV LANA_HOME /lana
   CMD ["lana-cli"]
+
+# untested yet
+# FROM scratch
+# ARG VERSION
+# ARG BUILDTIME
+# ARG COMMITHASH
+# ENV VERSION="${VERSION}" \
+#     BUILDTIME="${BUILDTIME}" \
+#     COMMITHASH="${COMMITHASH}" \
+#     LANA_HOME="/lana"
+
+# COPY --from=load /usr/local/bin/lana-cli /bin/lana-cli
+# COPY --from=load --chown=1000:0 /lana-home /lana
+# USER 1000
+# ENTRYPOINT ["/bin/lana-cli"]

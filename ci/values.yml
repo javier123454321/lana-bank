@@ -18,3 +18,6 @@ docker_host_ip: ((staging-ssh.docker_host_ip))
 git_version_branch: version
 gh_org: GaloyMoney
 gh_repository: lana-bank
+
+folder_registry_image: lana-bank
+folder_registry_image_static: lana-bank-static

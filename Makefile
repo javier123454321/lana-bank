@@ -29,7 +29,7 @@ run-server:
 run-server-with-bootstrap:
 	cargo run --bin lana-cli --all-features -- --config ./bats/lana-sim-time.yml | tee .e2e-logs
 
-check-code: sdl
+check-code: sdl-rust
 	git diff --exit-code lana/customer-server/src/graphql/schema.graphql
 	git diff --exit-code lana/admin-server/src/graphql/schema.graphql
 	SQLX_OFFLINE=true cargo fmt --check --all
@@ -49,11 +49,15 @@ build-for-tests:
 e2e: clean-deps start-deps build-for-tests
 	bats --setup-suite-file bats/ci-setup-suite.bash -t bats
 
-sdl:
+sdl-rust:
 	SQLX_OFFLINE=true cargo run --bin write_sdl > lana/admin-server/src/graphql/schema.graphql
 	SQLX_OFFLINE=true cargo run --bin write_customer_sdl > lana/customer-server/src/graphql/schema.graphql
+
+sdl-js:
 	cd apps/admin-panel && pnpm install && pnpm codegen
 	cd apps/customer-portal && pnpm install && pnpm codegen
+
+full-sdl: sdl-rust sdl-js
 
 # Frontend Apps
 check-code-apps: check-code-apps-admin-panel check-code-apps-customer-portal
