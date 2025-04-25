@@ -27,6 +27,10 @@ impl CreditFacilityBalanceSummary {
         self.due_disbursed_outstanding + self.overdue_disbursed_outstanding
     }
 
+    pub fn disbursed_outstanding(&self) -> UsdCents {
+        self.not_yet_due_disbursed_outstanding + self.disbursed_outstanding_payable()
+    }
+
     pub fn interest_outstanding_payable(&self) -> UsdCents {
         self.due_interest_outstanding + self.overdue_interest_outstanding
     }
@@ -35,7 +39,7 @@ impl CreditFacilityBalanceSummary {
         self.disbursed_outstanding_payable() + self.interest_outstanding_payable()
     }
 
-    fn total_not_yet_due(&self) -> UsdCents {
+    fn total_outstanding_not_yet_payable(&self) -> UsdCents {
         self.not_yet_due_disbursed_outstanding + self.not_yet_due_interest_outstanding
     }
 
@@ -48,7 +52,7 @@ impl CreditFacilityBalanceSummary {
     }
 
     pub fn any_outstanding_or_defaulted(&self) -> bool {
-        !(self.total_not_yet_due().is_zero()
+        !(self.total_outstanding_not_yet_payable().is_zero()
             && self.total_outstanding_payable().is_zero()
             && self.total_defaulted().is_zero())
     }

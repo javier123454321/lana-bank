@@ -139,7 +139,7 @@ where
                 .expect("Accrual in progress should exist for scheduled job");
 
             let interest_accrual =
-                accrual.record_accrual(balances.total_overdue(), audit_info.clone());
+                accrual.record_accrual(balances.disbursed_outstanding(), audit_info.clone());
 
             ConfirmedAccrual {
                 accrual: (interest_accrual, account_ids).into(),
