@@ -1,6 +1,6 @@
 [package]
 name = "lana-ids"
-version = "0.3.355-dev"
+version = "0.3.356-dev"
 edition = "2021"
 
 [features]
