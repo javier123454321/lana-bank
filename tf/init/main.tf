@@ -20,12 +20,13 @@ locals {
   tf_state_bucket_name   = "lana-dev-tf-state"
   objects_list_role_name = "lana_objects_list"
   owner                  = var.owner_email
+  lana_dev_users         = var.lana_dev_users
 }
 
 module "setup" {
   source = "../bq-setup"
 
-  for_each = var.lana_dev_users
+  for_each = local.lana_dev_users
 
   name_prefix = each.key
 
