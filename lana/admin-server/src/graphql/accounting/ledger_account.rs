@@ -120,26 +120,16 @@ pub(super) enum LedgerAccountBalanceRange {
     Btc(BtcLedgerAccountBalanceRange),
 }
 
+#[derive(SimpleObject)]
+pub(super) struct LedgerAccountBalanceRangeByCurrency {
+    pub usd: UsdLedgerAccountBalanceRange,
+    pub btc: BtcLedgerAccountBalanceRange,
+}
+
 impl From<Option<&lana_app::primitives::BalanceRange>> for LedgerAccountBalanceRange {
     fn from(balance_range_opt: Option<&lana_app::primitives::BalanceRange>) -> Self {
         match balance_range_opt {
-            None => LedgerAccountBalanceRange::Usd(UsdLedgerAccountBalanceRange {
-                start: UsdLedgerAccountBalance {
-                    settled: UsdCents::ZERO,
-                    pending: UsdCents::ZERO,
-                    encumbrance: UsdCents::ZERO,
-                },
-                diff: UsdLedgerAccountBalance {
-                    settled: UsdCents::ZERO,
-                    pending: UsdCents::ZERO,
-                    encumbrance: UsdCents::ZERO,
-                },
-                end: UsdLedgerAccountBalance {
-                    settled: UsdCents::ZERO,
-                    pending: UsdCents::ZERO,
-                    encumbrance: UsdCents::ZERO,
-                },
-            }),
+            None => LedgerAccountBalanceRange::Usd(UsdLedgerAccountBalanceRange::default()),
             Some(balance_range) => {
                 let currency = match &balance_range.end {
                     None => Currency::USD,
@@ -149,45 +139,61 @@ impl From<Option<&lana_app::primitives::BalanceRange>> for LedgerAccountBalanceR
                 };
 
                 if currency == Currency::USD {
-                    LedgerAccountBalanceRange::Usd(UsdLedgerAccountBalanceRange {
-                        start: UsdLedgerAccountBalance::from(balance_range.start.as_ref()),
-                        diff: UsdLedgerAccountBalance::from(balance_range.diff.as_ref()),
-                        end: UsdLedgerAccountBalance::from(balance_range.end.as_ref()),
-                    })
+                    LedgerAccountBalanceRange::Usd(UsdLedgerAccountBalanceRange::from(
+                        balance_range,
+                    ))
                 } else {
-                    LedgerAccountBalanceRange::Btc(BtcLedgerAccountBalanceRange {
-                        start: BtcLedgerAccountBalance::from(balance_range.start.as_ref()),
-                        diff: BtcLedgerAccountBalance::from(balance_range.diff.as_ref()),
-                        end: BtcLedgerAccountBalance::from(balance_range.end.as_ref()),
-                    })
+                    LedgerAccountBalanceRange::Btc(BtcLedgerAccountBalanceRange::from(
+                        balance_range,
+                    ))
                 }
             }
         }
     }
 }
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Default)]
 pub(super) struct UsdLedgerAccountBalanceRange {
     start: UsdLedgerAccountBalance,
     diff: UsdLedgerAccountBalance,
     end: UsdLedgerAccountBalance,
 }
 
-#[derive(SimpleObject)]
+impl From<&lana_app::primitives::BalanceRange> for UsdLedgerAccountBalanceRange {
+    fn from(balance_range: &lana_app::primitives::BalanceRange) -> Self {
+        Self {
+            start: UsdLedgerAccountBalance::from(balance_range.start.as_ref()),
+            diff: UsdLedgerAccountBalance::from(balance_range.diff.as_ref()),
+            end: UsdLedgerAccountBalance::from(balance_range.end.as_ref()),
+        }
+    }
+}
+
+#[derive(SimpleObject, Default)]
 pub(super) struct BtcLedgerAccountBalanceRange {
     start: BtcLedgerAccountBalance,
     diff: BtcLedgerAccountBalance,
     end: BtcLedgerAccountBalance,
 }
 
-#[derive(SimpleObject)]
+impl From<&lana_app::primitives::BalanceRange> for BtcLedgerAccountBalanceRange {
+    fn from(balance_range: &lana_app::primitives::BalanceRange) -> Self {
+        Self {
+            start: BtcLedgerAccountBalance::from(balance_range.start.as_ref()),
+            diff: BtcLedgerAccountBalance::from(balance_range.diff.as_ref()),
+            end: BtcLedgerAccountBalance::from(balance_range.end.as_ref()),
+        }
+    }
+}
+
+#[derive(SimpleObject, Default)]
 pub(super) struct UsdLedgerAccountBalance {
     settled: UsdCents,
     pending: UsdCents,
     encumbrance: UsdCents,
 }
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Default)]
 pub(super) struct BtcLedgerAccountBalance {
     settled: Satoshis,
     pending: Satoshis,

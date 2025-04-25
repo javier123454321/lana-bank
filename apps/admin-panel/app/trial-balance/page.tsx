@@ -52,9 +52,12 @@ gql`
     trialBalance(from: $from, until: $until) {
       name
       total {
-        __typename
-        ...UsdLedgerBalanceRangeFragment
-        ...BtcLedgerBalanceRangeFragment
+        usd {
+          ...UsdLedgerBalanceRangeFragment
+        }
+        btc {
+          ...BtcLedgerBalanceRangeFragment
+        }
       }
       accounts(first: $first, after: $after) {
         edges {
@@ -339,25 +342,31 @@ function TrialBalancePage() {
         <TableCell className="font-bold">{t("totals")}</TableCell>
         <TableCell />
         <TableCell className="w-48">
-          {currency === "usd" && isUsdLedgerBalanceRange(total) ? (
-            <Balance align="end" currency={currency} amount={total.usdStart[layer]} />
-          ) : currency === "btc" && isBtcLedgerBalanceRange(total) ? (
-            <Balance align="end" currency={currency} amount={total.btcStart[layer]} />
-          ) : null}
+          <Balance
+            align="end"
+            currency={currency}
+            amount={
+              currency === "usd" ? total.usd.usdStart[layer] : total.btc.btcStart[layer]
+            }
+          />
         </TableCell>
         <TableCell className="w-48">
-          {currency === "usd" && isUsdLedgerBalanceRange(total) ? (
-            <Balance align="end" currency={currency} amount={total.usdDiff[layer]} />
-          ) : currency === "btc" && isBtcLedgerBalanceRange(total) ? (
-            <Balance align="end" currency={currency} amount={total.btcDiff[layer]} />
-          ) : null}
+          <Balance
+            align="end"
+            currency={currency}
+            amount={
+              currency === "usd" ? total.usd.usdDiff[layer] : total.btc.btcDiff[layer]
+            }
+          />
         </TableCell>
         <TableCell className="w-48">
-          {currency === "usd" && isUsdLedgerBalanceRange(total) ? (
-            <Balance align="end" currency={currency} amount={total.usdEnd[layer]} />
-          ) : currency === "btc" && isBtcLedgerBalanceRange(total) ? (
-            <Balance align="end" currency={currency} amount={total.btcEnd[layer]} />
-          ) : null}
+          <Balance
+            align="end"
+            currency={currency}
+            amount={
+              currency === "usd" ? total.usd.usdEnd[layer] : total.btc.btcEnd[layer]
+            }
+          />
         </TableCell>
       </TableRow>
     </TableFooter>

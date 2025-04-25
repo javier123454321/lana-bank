@@ -34,10 +34,13 @@ gql`
   query ProfitAndLossStatement($from: Timestamp!, $until: Timestamp) {
     profitAndLossStatement(from: $from, until: $until) {
       name
-      net {
-        __typename
-        ...UsdLedgerBalanceRangeFragment
-        ...BtcLedgerBalanceRangeFragment
+      total {
+        usd {
+          ...UsdLedgerBalanceRangeFragment
+        }
+        btc {
+          ...BtcLedgerBalanceRangeFragment
+        }
       }
       categories {
         id
@@ -211,11 +214,13 @@ const ProfitAndLossStatement = ({
     return <div>No data available</div>
   }
 
+  const total = data.total
   let netEnd: number | undefined
-  if (data.net.__typename === "UsdLedgerAccountBalanceRange") {
-    netEnd = data.net.usdEnd[layer]
-  } else if (data.net.__typename === "BtcLedgerAccountBalanceRange") {
-    netEnd = data.net.btcEnd[layer]
+
+  if (currency === "usd" && total?.usd) {
+    netEnd = total.usd.usdEnd[layer]
+  } else if (currency === "btc" && total?.btc) {
+    netEnd = total.btc.btcEnd[layer]
   }
 
   return (

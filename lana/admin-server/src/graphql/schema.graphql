@@ -1140,6 +1140,11 @@ type LedgerAccount {
 
 union LedgerAccountBalanceRange = UsdLedgerAccountBalanceRange | BtcLedgerAccountBalanceRange
 
+type LedgerAccountBalanceRangeByCurrency {
+	usd: UsdLedgerAccountBalanceRange!
+	btc: BtcLedgerAccountBalanceRange!
+}
+
 type LedgerAccountConnection {
 	"""
 	Information to aid in pagination.
@@ -1365,7 +1370,7 @@ input ProfitAndLossModuleConfigureInput {
 
 type ProfitAndLossStatement {
 	name: String!
-	net: LedgerAccountBalanceRange!
+	total: LedgerAccountBalanceRangeByCurrency!
 	categories: [LedgerAccount!]!
 }
 
@@ -1609,7 +1614,7 @@ type TransactionTemplateEdge {
 
 type TrialBalance {
 	name: String!
-	total: LedgerAccountBalanceRange!
+	total: LedgerAccountBalanceRangeByCurrency!
 	accounts(first: Int!, after: String): LedgerAccountConnection!
 }
 
