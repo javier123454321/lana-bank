@@ -254,8 +254,18 @@ ymd() {
     '{ id: $creditFacilityId }'
   )
   exec_admin_graphql 'find-credit-facility' "$variables"
-  interest_outstanding=$(graphql_output '.data.creditFacility.balance.interest.outstanding.usdBalance')
-  total_outstanding=$(graphql_output '.data.creditFacility.balance.outstanding.usdBalance')
+  balance=$(graphql_output '.data.creditFacility.balance')
+
+  interest=$(echo $balance | jq -r '.interest.total.usdBalance')
+  interest_outstanding=$(echo $balance | jq -r '.interest.outstanding.usdBalance')
+  [[ "$interest" -eq "$interest_outstanding" ]] || exit 1
+
+  disbursed=$(echo $balance | jq -r '.disbursed.total.usdBalance')
+  disbursed_outstanding=$(echo $balance | jq -r '.disbursed.outstanding.usdBalance')
+  [[ "$disbursed" -eq "$disbursed_outstanding" ]] || exit 1
+
+  total_outstanding=$(echo $balance | jq -r '.outstanding.usdBalance')
+  [[ "$total_outstanding" -eq "$(( $interest_outstanding + $disbursed_outstanding ))" ]] || exit 1
 
   disbursed_payment=25000
   amount="$(( $disbursed_payment + $interest_outstanding ))"
@@ -271,12 +281,17 @@ ymd() {
     }'
   )
   exec_admin_graphql 'credit-facility-partial-payment' "$variables"
-  balance=$(graphql_output '.data.creditFacilityPartialPayment.creditFacility.balance')
+  updated_balance=$(graphql_output '.data.creditFacilityPartialPayment.creditFacility.balance')
 
-  updated_total_outstanding=$(echo $balance | jq -r '.outstanding.usdBalance')
+  updated_interest=$(echo $updated_balance | jq -r '.interest.total.usdBalance')
+  [[ "$interest" -eq "$updated_interest" ]] || exit 1
+  updated_disbursed=$(echo $updated_balance | jq -r '.disbursed.total.usdBalance')
+  [[ "$disbursed" -eq "$updated_disbursed" ]] || exit 1
+
+  updated_total_outstanding=$(echo $updated_balance | jq -r '.outstanding.usdBalance')
   [[ "$updated_total_outstanding" -lt "$total_outstanding" ]] || exit 1
 
-  updated_interest_outstanding=$(echo $balance | jq -r '.interest.outstanding.usdBalance')
+  updated_interest_outstanding=$(echo $updated_balance | jq -r '.interest.outstanding.usdBalance')
   [[ "$updated_interest_outstanding" -eq "0" ]] || exit 1
 
   retry 10 1 wait_for_dashboard_payment "$disbursed_before" "$disbursed_payment"

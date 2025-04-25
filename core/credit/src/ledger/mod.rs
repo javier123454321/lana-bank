@@ -983,8 +983,8 @@ impl CreditLedger {
         } else {
             UsdCents::ZERO
         };
-        let disbursed = if let Some(b) = balances.get(&disbursed_receivable_due_id) {
-            UsdCents::try_from_usd(b.details.pending.dr_balance)?
+        let disbursed = if let Some(b) = balances.get(&disbursed_receivable_not_yet_due_id) {
+            UsdCents::try_from_usd(b.details.settled.dr_balance)?
         } else {
             UsdCents::ZERO
         };
@@ -1012,8 +1012,8 @@ impl CreditLedger {
             UsdCents::ZERO
         };
 
-        let interest_posted = if let Some(b) = balances.get(&interest_receivable_due_id) {
-            UsdCents::try_from_usd(b.details.pending.dr_balance)?
+        let interest_posted = if let Some(b) = balances.get(&interest_receivable_not_yet_due_id) {
+            UsdCents::try_from_usd(b.details.settled.dr_balance)?
         } else {
             UsdCents::ZERO
         };
