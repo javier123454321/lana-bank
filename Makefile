@@ -19,18 +19,8 @@ setup-db:
 	cd lana/app && cargo sqlx migrate run
 
 sqlx-prepare:
-	cd lib/job && cargo sqlx prepare
-	cd lib/audit && cargo sqlx prepare
-	cd lib/outbox && cargo sqlx prepare
-	cd core/governance && cargo sqlx prepare
-	cd core/customer && cargo sqlx prepare
-	cd core/user && cargo sqlx prepare
-	cd core/deposit && cargo sqlx prepare
-	cd core/credit && cargo sqlx prepare
-	cd core/accounting && cargo sqlx prepare
-	cd lana/app && cargo sqlx prepare
-	cd lana/dashboard && cargo sqlx prepare
-
+	cargo sqlx prepare --workspace
+	
 reset-deps: clean-deps start-deps setup-db
 
 run-server:
