@@ -7,4 +7,4 @@ set -eu
 
 pushd repo
 
-make check-code-apps
+nix develop -c make check-code
