@@ -1,6 +1,6 @@
 [package]
 name = "core-accounting"
-version = "0.3.361-dev"
+version = "0.3.367-dev"
 edition = "2024"
 
 [features]
