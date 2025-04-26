@@ -1,6 +1,6 @@
 [package]
 name = "tracing-utils"
-version = "0.3.358-dev"
+version = "0.3.361-dev"
 edition = "2021"
 
 [features]
